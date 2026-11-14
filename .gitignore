@@ -1,0 +1,19 @@
+# Python virtual environment (generated, personal to your machine)
+.venv/
+
+# Secrets and local configuration: never commit these
+.env
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Tool caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
