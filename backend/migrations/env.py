@@ -19,6 +19,11 @@ from sqlalchemy import create_engine, pool
 from app.core.config import get_settings
 from app.core.database import Base
 
+# Import every ORM module so that ``Base.metadata`` is fully populated before
+# autogenerate compares it against the database. New model modules must be
+# added here.
+from app.users import models as _users_models  # noqa: F401  (registers tables)
+
 config = context.config
 
 if config.config_file_name is not None:

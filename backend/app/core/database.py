@@ -16,13 +16,16 @@ Two invariants matter here:
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import Iterator
+from datetime import datetime
 
-from sqlalchemy import MetaData, create_engine, text
+from sqlalchemy import DateTime, MetaData, create_engine, func, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
+from app.core.common.ids import uuid7
 from app.core.config import get_settings
 
 # Deterministic constraint/index names. ``%(column_0_label)s`` is used for
@@ -73,6 +76,30 @@ class Base(DeclarativeBase):
     """Declarative base carrying the shared metadata and naming convention."""
 
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+class UUIDPrimaryKeyMixin:
+    """Adds an application-generated, time-ordered ``id`` primary key."""
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid7)
+
+
+class TimestampMixin:
+    """Adds ``created_at`` and ``updated_at`` (both ``timestamptz`` in UTC).
+
+    Defaults are computed by the database so the values are correct even for
+    rows created outside the ORM.
+    """
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
 
 def get_db() -> Iterator[Session]:
