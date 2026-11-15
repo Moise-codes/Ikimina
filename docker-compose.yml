@@ -1,0 +1,63 @@
+# Local development stack: PostgreSQL 16 and Redis 7.
+# Credentials come from the root `.env` file (copy `.env.example` to `.env`).
+# Ports are bound to 127.0.0.1 so the services are not exposed to the network.
+#
+#   docker compose up -d          # start
+#   docker compose ps             # check health
+#   docker compose down           # stop (keeps the data volume)
+#   docker compose down -v        # stop and wipe data (re-runs the init script)
+name: ikimina
+
+services:
+  db:
+    image: postgres:16
+    container_name: ikimina-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set in .env}
+      # Extra database created by the init script below, used by the test suite.
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB:-ikimina_test}
+    ports:
+      # Host port is configurable (POSTGRES_PORT) because 5432 may be taken by a
+      # local PostgreSQL service. The container always listens on 5432.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs only when the data volume is first created.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: ikimina-redis
+    # Redis is password-protected so it is never an open cache/queue.
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is not set in .env}
+      - --appendonly
+      - "yes"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is not set in .env}
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
