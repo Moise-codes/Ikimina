@@ -16,18 +16,21 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine, pool
 
-from app.core.config import get_settings
-from app.core.database import Base
-
 # Import every ORM module so that ``Base.metadata`` is fully populated before
 # autogenerate compares it against the database. New model modules must be
 # added here.
+from app.auth import models as _auth_models  # noqa: F401  (registers tables)
+from app.core.config import get_settings
+from app.core.database import Base
 from app.users import models as _users_models  # noqa: F401  (registers tables)
 
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # ``disable_existing_loggers=False`` keeps the application's own loggers
+    # working when Alembic is driven in-process (for example from the test
+    # suite); the default would silently disable them.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 

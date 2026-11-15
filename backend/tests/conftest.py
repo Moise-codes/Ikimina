@@ -16,13 +16,14 @@ from __future__ import annotations
 
 import base64
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 import pytest
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session as OrmSession
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -83,3 +84,38 @@ def make_settings() -> Callable[..., Any]:
         return Settings(_env_file=None, **values)
 
     return _make
+
+
+@pytest.fixture(scope="session")
+def database_schema() -> Iterator[None]:
+    """Bring the test database up to ``head`` once per test session.
+
+    This mirrors the ``alembic upgrade head`` step CI runs before pytest, so a
+    developer can simply run ``pytest``. The migration reads ``DATABASE_URL``
+    from the test environment set up above, so it always targets the test
+    database and never the development one.
+    """
+    from alembic import command
+    from alembic.config import Config
+
+    backend_dir = _REPO_ROOT / "backend"
+    config = Config(str(backend_dir / "alembic.ini"))
+    config.set_main_option("script_location", str(backend_dir / "migrations"))
+    command.upgrade(config, "head")
+    yield
+
+
+@pytest.fixture
+def db_session(database_schema: None) -> Iterator[OrmSession]:
+    """A session bound to the migrated test database, rolled back afterwards.
+
+    Each test therefore starts from a clean state without any manual cleanup.
+    """
+    from app.core.database import SessionLocal
+
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()

@@ -79,7 +79,9 @@ pytest -m integration  # needs PostgreSQL and Redis (docker compose up -d)
 
 Tests read configuration from the environment; [`tests/conftest.py`](tests/conftest.py)
 provides deterministic values and derives a dedicated test database
-(`POSTGRES_TEST_DB`) so the development data is never touched.
+(`POSTGRES_TEST_DB`) so the development data is never touched. The database-backed
+tests bring that test database up to `head` automatically, so no manual migration
+step is needed before running `pytest`.
 
 ## Migrate
 
