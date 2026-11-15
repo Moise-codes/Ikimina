@@ -6,7 +6,7 @@
 # Anything a package needs at build time (compilers, headers) stays here and is
 # not present in the final image.
 # ---------------------------------------------------------------------------
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -23,7 +23,7 @@ RUN pip install --upgrade pip && pip install --requirement requirements.txt
 # Only the virtual environment and the application code; no compilers, no
 # package caches, and it runs as an unprivileged user.
 # ---------------------------------------------------------------------------
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
