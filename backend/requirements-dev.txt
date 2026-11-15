@@ -1,4 +1,14 @@
+# Development and CI tooling. Installs the runtime requirements first.
 -r requirements.txt
-pytest
-ruff
-mypy
+
+# --- Testing ---
+pytest==9.2.0             # Test runner
+pytest-cov==7.1.0         # Coverage plugin (enforces the threshold in pyproject.toml)
+
+# --- Linting, formatting and type checking ---
+ruff==0.17.5              # Linter + formatter
+mypy==2.4.1               # Static type checker (strict on app/)
+
+# --- Supply chain and security scanning (used in CI) ---
+pip-audit==2.10.1         # Known-vulnerability scan of dependencies
+bandit==1.9.4             # Static security analysis of the source

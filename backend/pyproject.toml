@@ -1,0 +1,90 @@
+# ---------------------------------------------------------------------------
+# Tool configuration (ruff, mypy, pytest). This project is an application, not a
+# distributable package, so there is intentionally no [project] table here.
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+# Target Python 3.12 (the Docker image and CI use 3.12), even though a newer
+# interpreter may be used locally.
+target-version = "py312"
+line-length = 100
+src = ["app", "tests"]
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort: import ordering
+    "UP",  # pyupgrade: modern syntax
+    "B",   # flake8-bugbear: likely bugs
+    "S",   # flake8-bandit: security checks
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "S101", # pytest relies on `assert`
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests deliberately use asserts, fake secrets and predictable randomness.
+"tests/**" = ["S101", "S105", "S106", "S311"]
+"migrations/**" = ["E501", "INP001"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ---------------------------------------------------------------------------
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+show_error_codes = true
+pretty = true
+exclude = ["migrations/"]
+
+# Tests may use untyped helper functions and fixtures more loosely than app code.
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+warn_return_any = false
+
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-fail-under=85",
+]
+markers = [
+    "unit: fast, isolated tests with no external services",
+    "integration: tests that use PostgreSQL, Redis or HTTP",
+    "contract: tests that validate recorded provider responses",
+    "concurrency: tests that exercise races and locking",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
