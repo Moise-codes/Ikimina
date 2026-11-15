@@ -1,11 +1,12 @@
-# Local development stack: PostgreSQL 16 and Redis 7.
+# Local development stack: PostgreSQL 16, Redis 7 and the API image.
 # Credentials come from the root `.env` file (copy `.env.example` to `.env`).
 # Ports are bound to 127.0.0.1 so the services are not exposed to the network.
 #
-#   docker compose up -d          # start
-#   docker compose ps             # check health
-#   docker compose down           # stop (keeps the data volume)
-#   docker compose down -v        # stop and wipe data (re-runs the init script)
+#   docker compose up -d                 # start PostgreSQL and Redis
+#   docker compose up -d --build api     # build and start the API too
+#   docker compose ps                    # check health
+#   docker compose down                  # stop (keeps the data volume)
+#   docker compose down -v               # stop and wipe data (re-runs the init script)
 name: ikimina
 
 services:
@@ -56,6 +57,38 @@ services:
       timeout: 3s
       retries: 10
       start_period: 5s
+    restart: unless-stopped
+
+  # The API image built from backend/Dockerfile. It runs database migrations and
+  # then serves the app with Gunicorn + Uvicorn workers.
+  #   docker compose up -d --build api
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ikimina-api:local
+    container_name: ikimina-api
+    env_file: .env
+    environment:
+      # Inside the compose network the services are reached by service name on
+      # their native ports, not through the host ports used by the host machine.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?POSTGRES_USER is not set in .env}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in .env}@db:5432/${POSTGRES_DB:?POSTGRES_DB is not set in .env}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is not set in .env}@redis:6379/0
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # `exec` so Gunicorn becomes PID 1 and receives signals (graceful shutdown).
+    command: ["sh", "-c", "alembic upgrade head && exec gunicorn app.main:app --config gunicorn.conf.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
 volumes:

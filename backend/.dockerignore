@@ -1,0 +1,21 @@
+# Build context for backend/Dockerfile - keep the image small and secret-free.
+.venv/
+venv/
+
+__pycache__/
+*.py[cod]
+
+# Developer tooling caches and reports.
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Tests and local-only files are not part of the runtime image.
+tests/
+.env
+.env.*
+!.env.example

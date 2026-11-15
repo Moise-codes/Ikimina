@@ -5,6 +5,8 @@
 # --- Web framework and server ---
 fastapi==0.163.0          # ASGI framework, type-driven validation, OpenAPI
 uvicorn[standard]==0.54.0 # ASGI server (standard extras: uvloop, httptools, watchfiles)
+gunicorn==27.0.1          # Production process manager (graceful restarts, worker supervision)
+uvicorn-worker==0.4.0     # Gunicorn worker class that runs the Uvicorn ASGI server
 
 # --- Data layer ---
 SQLAlchemy==2.1.8         # ORM / query builder, 2.0 typed style (synchronous)
