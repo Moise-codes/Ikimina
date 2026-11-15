@@ -1,0 +1,26 @@
+# Keep dependencies and GitHub Actions up to date with weekly pull requests.
+version: 2
+updates:
+  # Python runtime and development dependencies live in backend/.
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-dependencies:
+        patterns: ["*"]
+
+  # The base image in backend/Dockerfile.
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  # The GitHub Actions used by the CI workflow.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
