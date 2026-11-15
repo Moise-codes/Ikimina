@@ -16,13 +16,16 @@ Ikimina/
 
 ## Status
 
-- **Phase 0 (Foundation):** in progress — repository layout, configuration, Docker
-  Compose, CI, health endpoints, logging and the error envelope.
+- **Phase 0 (Foundation):** done — monorepo layout, fail-fast typed configuration,
+  SQLAlchemy 2.0 core + Alembic, FastAPI app factory with middleware and a
+  consistent error envelope, health/readiness probes, Docker image, Docker Compose
+  and CI.
+- Next: Phase 1 (identity and authentication).
 
 ## Documentation
 
 - Design document (source of truth): [`docs/ikimina-v2-design.md`](docs/ikimina-v2-design.md)
-- Architecture decision records: [`docs/adr/`](docs/adr/)
+- Backend developer guide: [`backend/README.md`](backend/README.md)
 
 ## Quick start
 
