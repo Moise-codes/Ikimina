@@ -27,7 +27,9 @@ RWANDA_COUNTRY_CODE = "250"
 MOBILE_PREFIXES: frozenset[str] = frozenset({"72", "73", "78", "79"})
 
 #: Canonical E.164 shape, mirrored by the ``users.phone`` CHECK constraint.
-E164_PATTERN = re.compile(r"^\+250(?:72|73|78|79)\d{7}$")
+#: Note: no non-capturing group (``?:``) here on purpose — the same pattern text
+#: is emitted into SQL, where ``:name`` would be read as a bind parameter.
+E164_PATTERN = re.compile(r"^\+250(72|73|78|79)\d{7}$")
 
 #: Characters users type as separators; they carry no meaning and are removed.
 _SEPARATORS = re.compile(r"[\s\-().]")
