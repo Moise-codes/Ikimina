@@ -18,8 +18,9 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import get_settings
@@ -88,3 +89,13 @@ def get_db() -> Iterator[Session]:
         raise
     finally:
         session.close()
+
+
+def is_database_ready() -> bool:
+    """Return ``True`` if a trivial query round-trips to PostgreSQL."""
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return False
+    return True
