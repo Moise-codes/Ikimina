@@ -57,7 +57,9 @@ def test_secrets_are_wrapped_and_do_not_leak_in_repr() -> None:
     assert VALID_SECRET_KEY not in repr(settings)
 
 
-def test_missing_secret_key_is_rejected() -> None:
+def test_missing_secret_key_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    # conftest forces SECRET_KEY into the environment; remove it for this case.
+    monkeypatch.delenv("SECRET_KEY", raising=False)
     with pytest.raises(ValidationError):
         Settings(
             _env_file=None,
