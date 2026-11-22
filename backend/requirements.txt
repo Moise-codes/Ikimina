@@ -3,13 +3,13 @@
 #   pip freeze > requirements.lock.txt
 
 # --- Web framework and server ---
-fastapi==0.163.0          # ASGI framework, type-driven validation, OpenAPI
+fastapi==0.165.0          # ASGI framework, type-driven validation, OpenAPI
 uvicorn[standard]==0.54.0 # ASGI server (standard extras: uvloop, httptools, watchfiles)
 gunicorn==27.0.1          # Production process manager (graceful restarts, worker supervision)
 uvicorn-worker==0.4.0     # Gunicorn worker class that runs the Uvicorn ASGI server
 
 # --- Data layer ---
-SQLAlchemy==2.1.8         # ORM / query builder, 2.0 typed style (synchronous)
+SQLAlchemy==2.1.9         # ORM / query builder, 2.0 typed style (synchronous)
 psycopg[binary]==3.3.9    # PostgreSQL driver (psycopg 3)
 alembic==1.20.1           # Schema migrations
 redis==8.1.0              # Rate limiting, OTP throttling, safe caches
